@@ -6,29 +6,11 @@
   - Subtitle: *Modular Arithmetics and Cryptography Course*  
   - Your name, student ID, date, and professor’s name.  
 - **Visuals**:  
-  - A sleek background with a watermark symbol (faded binary code or fingerprint).  
+  - A sleek background with a watermark symbol (faded binary code or fingerprint).
 
 ---
 
-### **Slide 2: Table of Contents**
-- **Text**:  
-  - Introduction  
-  - Importance of Digital Watermarking  
-  - Types of Watermarking  
-  - Modular Arithmetic in Watermarking  
-  - Cryptographic Methods  
-  - Watermarking Example (Images)  
-  - Detection and Extraction  
-  - Challenges and Attacks  
-  - Applications  
-  - Summary and Conclusion  
-  - Bibliography  
-- **Visuals**:  
-  - Use icons or bullets for clean navigation.
-
----
-
-### **Slide 3: Introduction to Digital Watermarking**
+### **Slide 2: Introduction to Digital Watermarking**
 - **Text**:  
   - Definition: A process to embed hidden information into digital media.  
   - Applications: Protect intellectual property, verify authenticity, and prevent tampering.  
@@ -38,7 +20,7 @@
 
 ---
 
-### **Slide 4: Importance of Digital Watermarking**
+### **Slide 3: Importance of Digital Watermarking**
 - **Text**:
   - Protection against piracy and unauthorized use.  
   - Ensures ownership, integrity, and traceability.  
@@ -48,7 +30,7 @@
 
 ---
 
-### **Slide 5: Types of Watermarking**
+### **Slide 4: Types of Watermarking**
 - **Text**:  
   - **Visible**: Logos, text watermarks.  
   - **Invisible**: Hidden but detectable.  
@@ -60,7 +42,7 @@
 
 ---
 
-### **Slide 6: Techniques: Spatial vs. Frequency Domains**
+### **Slide 5: Techniques: Spatial vs. Frequency Domains**
 - **Text**:  
   - **Spatial Domain**: Directly modifies pixel values.  
   - **Frequency Domain**: Embeds watermarks in transformed media (e.g., DCT, FFT).  
@@ -70,7 +52,7 @@
 
 ---
 
-### **Slide 7: Modular Arithmetic in Watermarking**
+### **Slide 6: Modular Arithmetic in Watermarking**
 - **Text**:
   - Modular arithmetic helps securely embed and detect watermarks.  
   - Formula: \( W = (M + K) \mod N \), where:  
@@ -81,7 +63,7 @@
 
 ---
 
-### **Slide 8: Cryptographic Techniques in Watermarking**
+### **Slide 7: Cryptographic Techniques in Watermarking**
 - **Text**:  
   - **Symmetric Key Watermarking**: Fast, uses shared keys (AES).  
   - **Public Key Watermarking**: Secure, asymmetric (RSA).  
@@ -92,7 +74,7 @@
 
 ---
 
-### **Slide 9: Step-by-Step Example: Watermarking an Image**
+### **Slide 8: Step-by-Step Example: Watermarking an Image**
 - **Text**:  
   - Steps to embed watermark:  
     1. Select pixel \( P \).  
@@ -104,7 +86,7 @@
 
 ---
 
-### **Slide 10: Watermark Detection and Extraction**
+### **Slide 9: Watermark Detection and Extraction**
 - **Text**:  
   - Use modular inverse or comparison to detect the watermark.  
   - Formula: \( W = (P' - K) \mod N \).  
@@ -114,7 +96,7 @@
 
 ---
 
-### **Slide 11: Challenges in Digital Watermarking**
+### **Slide 10: Challenges in Digital Watermarking**
 - **Text**:  
   - **Attacks**:  
     - Compression (JPEG).  
@@ -126,7 +108,7 @@
 
 ---
 
-### **Slide 12–13: Applications of Digital Watermarking**
+### **Slide 11–12: Applications of Digital Watermarking**
 - **Text**:  
   - **Media Protection**: Videos, images, audio.  
   - **Banking**: Digital signatures for transactions.  
@@ -137,7 +119,7 @@
 
 ---
 
-### **Slide 14: Case Study – Watermarking in Action**
+### **Slide 13: Case Study – Watermarking in Action**
 - **Text**:  
   - Real-life case study of watermarking used in media or e-commerce.  
   - Example: Image watermarks on stock photos.  
@@ -146,7 +128,7 @@
 
 ---
 
-### **Slide 15: Advantages of Digital Watermarking**
+### **Slide 14: Advantages of Digital Watermarking**
 - **Text**:
   - Protects copyright.  
   - Maintains data integrity.  
@@ -156,7 +138,7 @@
 
 ---
 
-### **Slide 16: Summary**
+### **Slide 15: Summary**
 - **Text**:  
   - Digital watermarking embeds information using cryptography and modular arithmetic.  
   - Combats piracy, ensures ownership, and protects data.  
@@ -166,7 +148,7 @@
 
 ---
 
-### **Slide 17: Conclusion**
+### **Slide 16: Conclusion**
 - **Text**:  
   - Digital watermarking is crucial for data security.  
   - Modular arithmetic ensures efficient and secure embedding.  
@@ -175,20 +157,11 @@
 
 ---
 
-### **Slide 18–19: Bibliography**
+### **Slide 17: Bibliography**
 - List of references:  
   - Books, papers, or articles.  
   - Tools or code examples.  
 - **Visuals**: Cleanly formatted citations.
-
----
-
-### **Slide 20: Q&A**
-- **Text**:  
-  - "Thank you for your attention!"  
-  - “Any questions?”  
-- **Visuals**:  
-  - Add a graphic (like a question mark or handshake icon).
 
 ---
 
