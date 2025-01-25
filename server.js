@@ -9,35 +9,26 @@ const upload = multer();
 app.use(express.static(path.join(__dirname, 'client')));
 app.use(express.urlencoded({extended: true}));
 
-/**
- * Invisible Watermark Function
- * Applies a simple modular shift on each RGB value.
- */
 async function applyInvisibleWatermark(imageBuffer, K, N) {
   const inputSharp = sharp(imageBuffer).ensureAlpha();
   const {data: rawData, info} = await inputSharp.raw().toBuffer({resolveWithObject: true});
 
   const {width, height, channels} = info;
-  // Reference pixel index (choose the first pixel for demonstration).
   const refIndex = 0;
   const originalM = rawData[refIndex];
 
-  // Shift each RGB value by K (mod N).
   for (let i = 0; i < rawData.length; i += 4) {
-    rawData[i] = (rawData[i] + K) % N; // R
-    rawData[i + 1] = (rawData[i + 1] + K) % N; // G
-    rawData[i + 2] = (rawData[i + 2] + K) % N; // B
-    rawData[i + 3] = 255; // A
+    rawData[i] = (rawData[i] + K) % N;
+    rawData[i + 1] = (rawData[i + 1] + K) % N;
+    rawData[i + 2] = (rawData[i + 2] + K) % N;
+    rawData[i + 3] = 255;
   }
 
-  const newW = rawData[refIndex]; // The new reference pixel value
-
-  // Convert raw data back to PNG
+  const newW = rawData[refIndex];
   const watermarkedBuffer = await sharp(rawData, {
     raw: {width, height, channels}
   }).png().toBuffer();
 
-  // Optionally draw a small red circle to indicate watermark location (for demonstration)
   const circleX = newW % width;
   const circleY = (newW + K) % height;
   const circleRadius = 5;
@@ -64,9 +55,6 @@ async function applyInvisibleWatermark(imageBuffer, K, N) {
   };
 }
 
-/**
- * Invisible Watermark Route
- */
 app.post('/watermark', upload.single('image'), async (req, res) => {
   try {
     const imageBuffer = req.file.buffer;
@@ -85,9 +73,6 @@ app.post('/watermark', upload.single('image'), async (req, res) => {
   }
 });
 
-/**
- * Helper to escape XML for SVG-based text
- */
 function escapeXml(str = '') {
   return str
     .replace(/&/g, '&amp;')
@@ -97,21 +82,15 @@ function escapeXml(str = '') {
     .replace(/'/g, '&apos;');
 }
 
-/**
- * Helper: apply visible watermark (image or text-as-SVG).
- */
 async function applyVisibleWatermark(mainBuffer, watermarkBuffer, options = {}) {
-  const {left = 0, top = 0, opacity = 0.3, width = 0, height = 0} = options;
+  const {left = 0, top = 0, width = 0, height = 0} = options;
 
-  // Load the main image
   const main = sharp(mainBuffer).ensureAlpha();
   const mainMeta = await main.metadata();
 
-  // Load the watermark
   let wm = sharp(watermarkBuffer).ensureAlpha();
   let wmMeta = await wm.metadata();
 
-  // Resize the watermark if width/height provided
   let finalWmBuffer = watermarkBuffer;
   if (width > 0 || height > 0) {
     wm = wm.resize({
@@ -123,7 +102,6 @@ async function applyVisibleWatermark(mainBuffer, watermarkBuffer, options = {}) 
     wmMeta = await sharp(finalWmBuffer).metadata();
   }
 
-  // Check if watermark goes out of main image boundary
   const willExceedWidth = left + wmMeta.width > mainMeta.width;
   const willExceedHeight = top + wmMeta.height > mainMeta.height;
 
@@ -140,24 +118,19 @@ async function applyVisibleWatermark(mainBuffer, watermarkBuffer, options = {}) 
       .toBuffer();
   }
 
-  // Composite watermark onto the main
   return await main
     .composite([
       {
         input: finalWmBuffer,
         left,
         top,
-        blend: 'over',
-        opacity
+        blend: 'over'
       }
     ])
     .png()
     .toBuffer();
 }
 
-/**
- * Helper: create a text-based watermark as an SVG
- */
 function createTextWatermarkSvg(text, w, h, color = '#000', fontSize = 24, fontFamily = 'Arial') {
   const escapedText = escapeXml(text);
   return Buffer.from(`
@@ -177,9 +150,6 @@ function createTextWatermarkSvg(text, w, h, color = '#000', fontSize = 24, fontF
   `);
 }
 
-/**
- * Visible Watermark (Encode) Route
- */
 app.post('/encode-visible', upload.fields([
   {name: 'image', maxCount: 1},
   {name: 'watermark', maxCount: 1}
@@ -195,18 +165,15 @@ app.post('/encode-visible', upload.fields([
 
     const left = parseInt(req.body.left, 10) || 0;
     const top = parseInt(req.body.top, 10) || 0;
-    const opacity = parseFloat(req.body.opacity) || 0.3;
     const wWidth = parseInt(req.body.wmWidth, 10) || 0;
     const wHeight = parseInt(req.body.wmHeight, 10) || 0;
 
     let watermarkBuffer;
-    // If text is provided, generate an SVG watermark
     if (text) {
       const boxW = wWidth > 0 ? wWidth : 300;
       const boxH = wHeight > 0 ? wHeight : 100;
       watermarkBuffer = createTextWatermarkSvg(text, boxW, boxH, '#000', 24, 'Arial');
     } else if (wmUpload) {
-      // Otherwise, use an uploaded image as the watermark
       watermarkBuffer = wmUpload.buffer;
     } else {
       return res.status(400).json({error: 'Provide either a watermark image or text.'});
@@ -218,7 +185,6 @@ app.post('/encode-visible', upload.fields([
       {
         left,
         top,
-        opacity,
         width: wWidth,
         height: wHeight
       }

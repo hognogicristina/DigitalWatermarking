@@ -116,7 +116,6 @@
 
 <h1>Watermarking Demo</h1>
 
-<!-- INVISIBLE (MODULAR) WATERMARK -->
 <h2>Invisible (Modular) Watermark</h2>
 <form id="watermark-form">
   <label for="image-input">Select an Image</label>
@@ -150,7 +149,6 @@
 
 <hr/>
 
-<!-- VISIBLE WATERMARK (ENCODE) -->
 <h2>Visible Watermark (Encode)</h2>
 <p style="text-align:center; margin-bottom:10px;">
   Use either "Text Watermark" or "Upload Watermark Image."
@@ -177,9 +175,6 @@
   <label for="wmHeight">Watermark Height (optional):</label>
   <input type="number" id="wmHeight" name="wmHeight" value="0"/>
 
-  <label for="opacity">Watermark Opacity (0-1):</label>
-  <input type="number" id="opacity" name="opacity" step="0.1" value="0.3"/>
-
   <button type="submit">Add Visible Watermark</button>
 </form>
 
@@ -188,19 +183,16 @@
   <img id="visible-watermarked-preview" alt="Visible Watermarked"/>
 </div>
 
-<!-- REVERT (REMOVE WATERMARK) BUTTON -->
 <div class="image-preview">
-  <!-- Make the button narrower by specifying a width style directly -->
   <button
     id="remove-watermark-btn"
-    style="background: #ff5722; width: 200px; margin: 0 auto; display: block;">
+    style="background: #ff5722; width: 300px; margin: 0 auto; display: block;">
     Remove Watermark (Revert)
   </button>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // ========== INVISIBLE WATERMARK ==========
     const formInvisible = document.getElementById('watermark-form');
     const imageInput = document.getElementById('image-input');
     const originalPreview = document.getElementById('original-preview');
@@ -253,32 +245,24 @@
       }
     });
 
-    // ========== VISIBLE WATERMARK (ENCODE) ==========
     const encodeForm = document.getElementById('visible-watermark-form');
     const previewVisible = document.getElementById('visible-watermarked-preview');
-
-    // We'll store the original (pre-watermarked) image data here:
     let originalVisibleImageData = null;
 
     encodeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Grab the main image file
       const mainFile = document.getElementById('main-image').files[0];
       if (!mainFile) {
         alert('Please select the main image for watermarking');
         return;
       }
 
-      // Read it into a data URL so we can revert to it later
       const reader = new FileReader();
       reader.onload = (ev) => {
-        // Store the original main image data for future revert
         originalVisibleImageData = ev.target.result;
       };
       reader.readAsDataURL(mainFile);
-
-      // Build form data to send to server
       const formData = new FormData(encodeForm);
 
       try {
@@ -298,10 +282,8 @@
       }
     });
 
-    // ========== REMOVE WATERMARK (REVERT) BUTTON ==========
     const removeBtn = document.getElementById('remove-watermark-btn');
     removeBtn.addEventListener('click', () => {
-      // If we have an original image data, revert the preview
       if (originalVisibleImageData) {
         previewVisible.src = originalVisibleImageData;
       } else {
