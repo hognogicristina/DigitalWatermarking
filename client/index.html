@@ -131,13 +131,16 @@
 </form>
 
 <div class="image-preview">
-  <h3>Original Image Preview</h3>
-  <img id="original-preview" alt="Original Preview"/>
+  <h3>Invisible Watermarked Image Preview</h3>
+  <img id="watermarked-image" alt="Invisible Watermarked"/>
 </div>
 
 <div class="image-preview">
-  <h3>Invisible Watermarked Image Preview</h3>
-  <img id="watermarked-image" alt="Invisible Watermarked"/>
+  <button
+    id="decode-watermark-btn"
+    style="background: #ff5722; width: 300px; margin: 0 auto; display: block;">
+    Remove Invisible Watermark
+  </button>
 </div>
 
 <div class="info">
@@ -195,21 +198,11 @@
   document.addEventListener('DOMContentLoaded', () => {
     const formInvisible = document.getElementById('watermark-form');
     const imageInput = document.getElementById('image-input');
-    const originalPreview = document.getElementById('original-preview');
     const watermarkedImage = document.getElementById('watermarked-image');
     const mValueSpan = document.getElementById('m-value');
     const wValueSpan = document.getElementById('w-value');
 
-    imageInput.addEventListener('change', () => {
-      const file = imageInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          originalPreview.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    window.watermarkedNoCircle = null;
 
     formInvisible.addEventListener('submit', async (evt) => {
       evt.preventDefault();
@@ -236,12 +229,48 @@
           throw new Error('Server error');
         }
         const data = await response.json();
+
+        watermarkedImage.src = `data:image/png;base64,${data.imageBase64}`;
+
+        window.watermarkedNoCircle = data.imageBase64NoCircle;
+
         mValueSpan.textContent = data.mValue;
         wValueSpan.textContent = data.wValue;
-        watermarkedImage.src = `data:image/png;base64,${data.imageBase64}`;
       } catch (err) {
         console.error(err);
         alert('Error applying invisible watermark.');
+      }
+    });
+
+    const decodeBtn = document.getElementById('decode-watermark-btn');
+    decodeBtn.addEventListener('click', async () => {
+      if (!window.watermarkedNoCircle) {
+        alert('No watermarked image to decode. Please apply the invisible watermark first!');
+        return;
+      }
+
+      const keyValue = document.getElementById('key-input').value || '0';
+      const modulusValue = document.getElementById('modulus-input').value || '256';
+
+      try {
+        const response = await fetch('/decode-watermark', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            imageBase64: window.watermarkedNoCircle,
+            key: keyValue,
+            modulus: modulusValue
+          })
+        });
+        const data = await response.json();
+        if (data.error) {
+          alert(data.error);
+        } else {
+          watermarkedImage.src = `data:image/png;base64,${data.decodedBase64}`;
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error decoding invisible watermark.');
       }
     });
 
@@ -263,6 +292,7 @@
         originalVisibleImageData = ev.target.result;
       };
       reader.readAsDataURL(mainFile);
+
       const formData = new FormData(encodeForm);
 
       try {

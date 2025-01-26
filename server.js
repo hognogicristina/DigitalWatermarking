@@ -6,16 +6,15 @@ const path = require('path');
 const app = express();
 const upload = multer();
 
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 app.use(express.static(path.join(__dirname, 'client')));
-app.use(express.urlencoded({extended: true}));
 
 async function applyInvisibleWatermark(imageBuffer, K, N) {
   const inputSharp = sharp(imageBuffer).ensureAlpha();
   const {data: rawData, info} = await inputSharp.raw().toBuffer({resolveWithObject: true});
-
   const {width, height, channels} = info;
-  const refIndex = 0;
-  const originalM = rawData[refIndex];
+  const originalM = rawData[0];
 
   for (let i = 0; i < rawData.length; i += 4) {
     rawData[i] = (rawData[i] + K) % N;
@@ -24,34 +23,36 @@ async function applyInvisibleWatermark(imageBuffer, K, N) {
     rawData[i + 3] = 255;
   }
 
-  const newW = rawData[refIndex];
+  const newW = rawData[0];
   const watermarkedBuffer = await sharp(rawData, {
     raw: {width, height, channels}
   }).png().toBuffer();
+  const watermarkedNoCircleBase64 = watermarkedBuffer.toString('base64');
 
   const circleX = newW % width;
   const circleY = (newW + K) % height;
-  const circleRadius = 5;
   const circleSvg = `
     <svg width="${width}" height="${height}">
       <circle 
         cx="${circleX}" 
         cy="${circleY}" 
-        r="${circleRadius}" 
+        r="5" 
         stroke="red" 
         stroke-width="2" 
         fill="none" />
     </svg>
   `;
-  const finalBuffer = await sharp(watermarkedBuffer)
+  const watermarkedWithCircle = await sharp(watermarkedBuffer)
     .composite([{input: Buffer.from(circleSvg), top: 0, left: 0}])
     .png()
     .toBuffer();
+  const watermarkedWithCircleBase64 = watermarkedWithCircle.toString('base64');
 
   return {
     mValue: originalM,
     wValue: newW,
-    watermarkedImageBase64: finalBuffer.toString('base64')
+    watermarkedWithCircleBase64,
+    watermarkedNoCircleBase64
   };
 }
 
@@ -62,14 +63,48 @@ app.post('/watermark', upload.single('image'), async (req, res) => {
     const N = parseInt(req.body.modulus, 10) || 256;
 
     const result = await applyInvisibleWatermark(imageBuffer, K, N);
-    res.json({
+    return res.json({
       mValue: result.mValue,
       wValue: result.wValue,
-      imageBase64: result.watermarkedImageBase64
+      imageBase64: result.watermarkedWithCircleBase64,
+      imageBase64NoCircle: result.watermarkedNoCircleBase64
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({error: 'Failed to apply invisible watermark.'});
+    return res.status(500).json({error: 'Failed to apply invisible watermark.'});
+  }
+});
+
+app.post('/decode-watermark', upload.none(), async (req, res) => {
+  try {
+    const {imageBase64, key, modulus} = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({error: 'No image data provided.'});
+    }
+    const K = parseInt(key, 10) || 0;
+    const N = parseInt(modulus, 10) || 256;
+
+    const watermarkedBuffer = Buffer.from(imageBase64, 'base64');
+
+    const inputSharp = sharp(watermarkedBuffer).ensureAlpha();
+    const {data: rawData, info} = await inputSharp.raw().toBuffer({resolveWithObject: true});
+    const {width, height, channels} = info;
+
+    for (let i = 0; i < rawData.length; i += 4) {
+      rawData[i] = (rawData[i] - K + N) % N;
+      rawData[i + 1] = (rawData[i + 1] - K + N) % N;
+      rawData[i + 2] = (rawData[i + 2] - K + N) % N;
+      rawData[i + 3] = 255;
+    }
+
+    const revertedBuffer = await sharp(rawData, {
+      raw: {width, height, channels}
+    }).png().toBuffer();
+
+    return res.json({decodedBase64: revertedBuffer.toString('base64')});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({error: 'Failed to decode invisible watermark.'});
   }
 });
 
@@ -182,20 +217,14 @@ app.post('/encode-visible', upload.fields([
     const watermarkedBuffer = await applyVisibleWatermark(
       mainUpload.buffer,
       watermarkBuffer,
-      {
-        left,
-        top,
-        width: wWidth,
-        height: wHeight
-      }
+      {left, top, width: wWidth, height: wHeight}
     );
 
     const base64 = watermarkedBuffer.toString('base64');
-    res.json({watermarked: base64});
-
+    return res.json({watermarked: base64});
   } catch (err) {
     console.error(err);
-    res.status(500).json({error: 'Failed to apply visible watermark.'});
+    return res.status(500).json({error: 'Failed to apply visible watermark.'});
   }
 });
 
