@@ -1,0 +1,73 @@
+const inputSharp = sharp(imageBuffer).ensureAlpha(); -> alpha (transparency) channel (RGBA) which means that the image has 4 channels
+(red, green, blue, and alpha). Alpha channel is used to determine the transparency of the image. The value of the alpha channel ranges from
+0 to 255, where 0 represents a fully transparent pixel and 255 represents a fully opaque pixel.
+
+const {data: rawData, info} = await inputSharp.raw().toBuffer({resolveWithObject: true}); -> rawData is a Buffer object that contains the
+raw pixel data of the image. The info object contains metadata about the image, such as the width, height, and number of channels.
+
+const originalM = rawData[0]; -> originalM is the original value of the red channel of the first pixel in the image. rawData: Contains all
+the pixel values.
+
+const watermarkedBuffer = await sharp(rawData, {
+    raw: {width, height, channels}
+  }).png().toBuffer(); -> watermarkedBuffer is a Buffer object that contains the watermarked image in PNG format. The sharp function is used
+to create a new Sharp object with the raw pixel data of the image.
+
+const watermarkedNoCircleBase64 = watermarkedBuffer.toString('base64'); -> watermarkedNoCircleBase64 is a Base64-encoded string that represents
+the watermarked image without the circle overlay. The toString method is used to convert the Buffer object to a Base64-encoded string.
+
+Base64-encoded string -> this is a way to encode binary data (like images) as text so that it can be easily transmitted over the internet.
+
+const mainMeta = await main.metadata(); -> mainMeta is an object that contains metadata about the main image, such as the width, height.
+
+let wm = sharp(watermarkBuffer).ensureAlpha(); -> wm is a Sharp object that represents the watermark image with an alpha channel.
+let wmMeta = await wm.metadata(); -> wmMeta is an object that contains metadata about the watermark image, such as the width, height.
+
+let finalWmBuffer = watermarkBuffer;
+if (width > 0 || height > 0) {
+wm = wm.resize({
+  width: width > 0 ? width : undefined,
+  height: height > 0 ? height : undefined,
+  fit: 'inside'
+});
+finalWmBuffer = await wm.png().toBuffer();
+wmMeta = await sharp(finalWmBuffer).metadata();
+} -> finalWmBuffer is a Buffer object that contains the resized watermark image in PNG format. The resize method is used to resize the
+watermark image to the specified width and height, while maintaining the aspect ratio. The fit option is set to 'inside' to ensure that
+the watermark image fits inside the specified dimensions.
+
+const willExceedWidth = left + wmMeta.width > mainMeta.width; -> willExceedWidth is a boolean value that indicates whether the watermark
+image will exceed the width of the main image when positioned at the specified left coordinate. The left coordinate is the x-coordinate of
+the top-left corner of the watermark image.
+const willExceedHeight = top + wmMeta.height > mainMeta.height; -> willExceedHeight is a boolean value that indicates whether the watermark
+image will exceed the height of the main image when positioned at the specified top coordinate. The top coordinate is the y-coordinate of
+the top-left corner of the watermark image.
+
+if (willExceedWidth || willExceedHeight) {
+const maxWidth = Math.max(1, mainMeta.width - left);
+const maxHeight = Math.max(1, mainMeta.height - top);
+finalWmBuffer = await sharp(finalWmBuffer)
+  .resize({
+    width: Math.min(wmMeta.width, maxWidth),
+    height: Math.min(wmMeta.height, maxHeight),
+    fit: 'inside'
+  })
+  .png()
+  .toBuffer();
+} -> This code block resizes the watermark image to fit within the boundaries of the main image if it exceeds the width or height. The
+maxWidth and maxHeight variables calculate the maximum width and height that the watermark image can have based on the position of the
+top-left corner. The resize method is used to resize the watermark image to the specified dimensions, while maintaining the aspect ratio.
+
+return await main
+.composite([
+  {
+    input: finalWmBuffer,
+    left,
+    top,
+    blend: 'over'
+  }
+])
+.png()
+.toBuffer(); -> This code block composites the watermark image onto the main image at the specified position (left, top). The blend option
+is set to 'over' to blend the watermark image with the main image. The composite method is used to overlay the watermark image onto the main
+image. The toBuffer method is used to convert the composited image to a Buffer object in PNG format.
